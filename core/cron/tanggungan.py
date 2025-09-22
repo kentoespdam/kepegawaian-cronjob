@@ -1,57 +1,54 @@
+import time
+
 import pandas as pd
 
-from core.config import get_connection_pool, LOGGER
-from core.enums import StatusKerja, HubunganKeluarga
+from core.config import LOGGER, log_duration
+from core.enums import StatusKawin, StatusPendidikan
+from core.models.pegawai import update_jml_tanggungan_pegawai
+from core.models.profil_keluarga import fetch_tanggungan, update_tanggungan_profil_keluarga, \
+    fetch_jml_tanggungan_by_biodata_ids
 
 
-def fetch_tanggungan(pegawai_id: int | None = None):
-    query = """
-            SELECT p.id AS pegawai_id,
-                   pk.id,
-                   pk.status_kawin,
-                   pk.status_pendidikan,
-                   TIMESTAMPDIFF(
-                           YEAR,
-                           pk.tanggal_lahir,
-                           CURRENT_DATE
-                   )    AS umur
-            FROM profil_keluarga pk
-                     INNER JOIN pegawai p
-                                ON pk.biodata_id = p.nik
-                                    AND p.is_deleted = FALSE
-                                    AND p.status_kerja IN (%s, %s)
-            WHERE pk.is_deleted = FALSE
-              AND pk.hubungan_keluarga = %s
-              AND pk.tanggungan = %s
-            """
-    params = (StatusKerja.KARYAWAN_AKTIF.value,
-              StatusKerja.DIRUMAHKAN.value,
-              HubunganKeluarga.ANAK.value,
-              True)
+class CronTanggungan:
+    def __init__(self):
+        self.start_time = time.time()
+        self.all_tanggungan_df = pd.DataFrame()
+        self.lepas_tanggungan_df = pd.DataFrame()
 
-    if pegawai_id:
-        query += " AND p.id=%s"
-        params = params + (pegawai_id,)
+    def _finish(self):
+        log_duration("Cron Tanggungan", self.start_time)
 
-    with get_connection_pool() as conn:
-        with conn.cursor() as cursor:
-            cursor.execute(query, params)
-            return pd.DataFrame(cursor.fetchall())
+    def execute(self):
+        LOGGER.info("Executing cron job tanggungan Anak")
+        self.all_tanggungan_df = fetch_tanggungan()
+        if self.all_tanggungan_df.empty:
+            self._finish()
+            return
+        self._update_status_tanggungan()
 
+    def _update_status_tanggungan(self):
+        self._filter_data()
+        if self.lepas_tanggungan_df.empty:
+            self._finish()
+            return
+        update_tanggungan_profil_keluarga(self.lepas_tanggungan_df)
+        self._update_jml_tanggungan_pegawai()
 
-def update_tanggungan_status(df: pd.DataFrame):
-    data = [(
-        row.tanggungan,
-        row.id
-    ) for row in df.itertuples()]
+    def _filter_data(self):
+        df = self.all_tanggungan_df.copy()
+        cond1 = df["status_kawin"].eq(StatusKawin.KAWIN.value)
+        cond2 = df["umur"].ge(26)
+        cond3 = df["umur"].gt(21)
+        cond4 = df["status_pendidikan"].ne(StatusPendidikan.SEKOLAH.value)
+        df = df[cond1 | cond2 | (cond3 & cond4)].reset_index(drop=True)
+        self.lepas_tanggungan_df = df
 
-    query = "UPDATE profil_keluarga SET tanggungan=%s WHERE id = %s"
-    with get_connection_pool() as conn:
-        with conn.cursor() as cursor:
-            try:
-                cursor.executemany(query, data)
-                LOGGER.info(f"{conn.affected_rows()} rows affected")
-                conn.commit()
-            except Exception as e:
-                conn.rollback()
-                LOGGER.error(e)
+    def _update_jml_tanggungan_pegawai(self):
+        df = self.lepas_tanggungan_df.copy()
+        biodata_ids = df["biodata_id"].unique().tolist()
+        if len(biodata_ids) == 0:
+            self._finish()
+            return
+        jml_tanggungan_per_pegawai_df = fetch_jml_tanggungan_by_biodata_ids(biodata_ids)
+        update_jml_tanggungan_pegawai(jml_tanggungan_per_pegawai_df)
+        self._finish()
