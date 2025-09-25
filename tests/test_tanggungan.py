@@ -4,7 +4,7 @@ import pandas as pd
 from icecream import ic
 
 from core.config import LOGGER
-from core.cron.tanggungan import CronTanggungan
+from core.cron.cron_tanggungan import CronTanggungan
 from core.enums import StatusKawin, StatusPendidikan
 from core.models.pegawai import update_jml_tanggungan_pegawai
 from core.models.profil_keluarga import fetch_tanggungan, fetch_jml_tanggungan_by_biodata_ids, \

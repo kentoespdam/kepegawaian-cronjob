@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="DataSourcePerFileMappings">
+    <file url="file://$PROJECT_DIR$/core/models/jenjang_pendidikan.py" value="af8f7a4b-cea3-4801-b2a9-c45cf43869c1" />
     <file url="file://$PROJECT_DIR$/core/models/profil_keluarga.py" value="af8f7a4b-cea3-4801-b2a9-c45cf43869c1" />
   </component>
 </project>

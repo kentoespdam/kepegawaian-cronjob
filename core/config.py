@@ -64,7 +64,8 @@ def save_update_single(query: str, data: tuple):
         with conn.cursor() as cursor:
             try:
                 cursor.execute(query, data)
-                LOGGER.info(f"{conn.affected_rows()} rows affected")
+                affected = cursor.rowcount
+                LOGGER.info(f"{affected} rows affected")
                 conn.commit()
             except Exception as e:
                 conn.rollback()
