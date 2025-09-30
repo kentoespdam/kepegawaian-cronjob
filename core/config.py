@@ -1,8 +1,6 @@
-import logging
 import logging.config
 import os
 import time
-import yaml
 
 import pandas as pd
 from dotenv import load_dotenv

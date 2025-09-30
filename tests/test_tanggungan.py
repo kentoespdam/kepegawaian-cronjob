@@ -3,10 +3,10 @@ from unittest import TestCase
 import pandas as pd
 from icecream import ic
 
-from core.config import LOGGER
+from core import LOGGER
 from core.cron.cron_tanggungan import CronTanggungan
-from core.enums import StatusKawin, StatusPendidikan
-from core.models.pegawai import update_jml_tanggungan_pegawai
+from core import StatusKawin, StatusPendidikan
+from core import update_jml_tanggungan_pegawai
 from core.models.profil_keluarga import fetch_tanggungan, fetch_jml_tanggungan, \
     update_tanggungan_profil_keluarga
 
