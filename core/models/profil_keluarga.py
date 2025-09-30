@@ -5,8 +5,8 @@ from core.enums import StatusKerja, HubunganKeluarga
 
 
 def fetch_tanggungan(pegawai_id: int | None = None):
-    params = ([StatusKerja.KARYAWAN_AKTIF.value,
-               StatusKerja.DIRUMAHKAN.value],
+    params = ((StatusKerja.KARYAWAN_AKTIF.value,
+               StatusKerja.DIRUMAHKAN.value,),
               False,
               HubunganKeluarga.ANAK.value,
               True,
@@ -30,18 +30,17 @@ def fetch_tanggungan(pegawai_id: int | None = None):
                                     AND p.status_kerja IN %s
             WHERE pk.is_deleted = %s
               AND pk.hubungan_keluarga = %s
-              AND pk.tanggungan = %s
+              # AND pk.tanggungan = %s
             """
 
     if pegawai_id is not None:
         query += " AND p.id=%s"
         params += (pegawai_id,)
-
     return fetch_data(query, params)
 
 
-def fetch_jml_tanggungan_by_biodata_ids(biodata_ids: list):
-    params = (False, HubunganKeluarga.ANAK.value, True, biodata_ids,)
+def fetch_jml_tanggungan(biodata_ids: list | None = None):
+    params = (False, HubunganKeluarga.ANAK.value, True,)
 
     query = """
             SELECT pk.biodata_id,
@@ -50,14 +49,17 @@ def fetch_jml_tanggungan_by_biodata_ids(biodata_ids: list):
             WHERE pk.is_deleted = %s
               AND pk.hubungan_keluarga = %s
               AND pk.tanggungan = %s
-              AND pk.biodata_id IN %s
-            GROUP BY biodata_id"""
+            GROUP BY biodata_id
+            """
+    if biodata_ids is not None:
+        query += " AND pk.biodata_id IN %s"
+        params += (biodata_ids,)
     return fetch_data(query, params)
 
 
 def update_tanggungan_profil_keluarga(df: pd.DataFrame):
     data = [(
-        False,
+        row.tanggungan,
         row.id
     ) for row in df.itertuples()]
 

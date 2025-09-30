@@ -6,7 +6,7 @@ from core.config import LOGGER, log_duration
 from core.enums import StatusKawin, StatusPendidikan
 from core.models.pegawai import update_jml_tanggungan_pegawai
 from core.models.profil_keluarga import fetch_tanggungan, update_tanggungan_profil_keluarga, \
-    fetch_jml_tanggungan_by_biodata_ids
+    fetch_jml_tanggungan
 
 
 class CronTanggungan:
@@ -20,35 +20,21 @@ class CronTanggungan:
 
     def execute(self):
         LOGGER.info("Executing cron job tanggungan Anak")
-        self.all_tanggungan_df = fetch_tanggungan()
-        if self.all_tanggungan_df.empty:
-            self._finish()
-            return
-        self._update_status_tanggungan()
-
-    def _update_status_tanggungan(self):
-        self._filter_data()
-        if self.lepas_tanggungan_df.empty:
-            self._finish()
-            return
-        update_tanggungan_profil_keluarga(self.lepas_tanggungan_df)
+        df = fetch_tanggungan()
+        df["tanggungan"] = df.apply(lambda x: self._set_tanggungan(x), axis=1)
+        update_tanggungan_profil_keluarga(df)
         self._update_jml_tanggungan_pegawai()
 
-    def _filter_data(self):
-        df = self.all_tanggungan_df.copy()
-        cond1 = df["status_kawin"].eq(StatusKawin.KAWIN.value)
-        cond2 = df["umur"].ge(26)
-        cond3 = df["umur"].gt(21)
-        cond4 = df["status_pendidikan"].ne(StatusPendidikan.SEKOLAH.value)
-        df = df[cond1 | cond2 | (cond3 & cond4)].reset_index(drop=True)
-        self.lepas_tanggungan_df = df
+    @staticmethod
+    def _set_tanggungan(row: pd.Series):
+        """Set tanggungan status based on conditions."""
+        status_kawin = row["status_kawin"] == StatusKawin.KAWIN.value
+        umur_ge_26 = row["umur"] >= 26
+        umur_gt_21 = row["umur"] > 21
+        status_pendidikan_neq_sekolah = row["status_pendidikan"] != StatusPendidikan.SEKOLAH.value
+        return False if status_kawin or umur_ge_26 or (umur_gt_21 and status_pendidikan_neq_sekolah) else True
 
     def _update_jml_tanggungan_pegawai(self):
-        df = self.lepas_tanggungan_df.copy()
-        biodata_ids = df["biodata_id"].unique().tolist()
-        if len(biodata_ids) == 0:
-            self._finish()
-            return
-        jml_tanggungan_per_pegawai_df = fetch_jml_tanggungan_by_biodata_ids(biodata_ids)
+        jml_tanggungan_per_pegawai_df = fetch_jml_tanggungan()
         update_jml_tanggungan_pegawai(jml_tanggungan_per_pegawai_df)
         self._finish()

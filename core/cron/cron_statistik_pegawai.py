@@ -1,4 +1,5 @@
 import time
+from datetime import datetime
 
 import pandas as pd
 
@@ -17,8 +18,11 @@ class CronStatistikPegawai:
         self.statistik_df = pd.DataFrame()
         self.result_df = pd.DataFrame()
 
-    def execute(self, tahun, bulan):
+    def execute(self):
         LOGGER.info("Starting Cronjob Statistik Pegawai")
+        now = datetime.now()
+        tahun = now.year
+        bulan = now.month
         self._initialize_result_df(tahun, bulan)
         self._initialize_statistik_df()
         self._calculate()
@@ -117,7 +121,3 @@ class CronStatistikPegawai:
         }
         return categories.get(status, None)
 
-
-if __name__ == "__main__":
-    cron = CronStatistikPegawai()
-    cron.execute(2025, 8)

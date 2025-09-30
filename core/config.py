@@ -1,18 +1,21 @@
 import logging
+import logging.config
 import os
 import time
+import yaml
 
 import pandas as pd
 from dotenv import load_dotenv
 from pymysql.cursors import DictCursor
 from pymysqlpool import Connection, ConnectionPool
 
+from core.cron_log import setup_logging
+
 load_dotenv()
-logging.basicConfig(
-    datefmt="%Y-%m-%d %H:%M:%S", format="%(asctime)s %(levelname)s %(message)s",
-    level=os.getenv("LOG_LEVEL", "INFO")
-)
-LOGGER = logging.getLogger(__name__)
+
+setup_logging()
+LOGGER = logging.getLogger('cronjob')
+schedule_logger = logging.getLogger("schedule")
 
 
 def get_connection_pool() -> Connection:

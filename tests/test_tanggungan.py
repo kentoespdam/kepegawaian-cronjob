@@ -7,7 +7,7 @@ from core.config import LOGGER
 from core.cron.cron_tanggungan import CronTanggungan
 from core.enums import StatusKawin, StatusPendidikan
 from core.models.pegawai import update_jml_tanggungan_pegawai
-from core.models.profil_keluarga import fetch_tanggungan, fetch_jml_tanggungan_by_biodata_ids, \
+from core.models.profil_keluarga import fetch_tanggungan, fetch_jml_tanggungan, \
     update_tanggungan_profil_keluarga
 
 
@@ -41,7 +41,7 @@ class Test(TestCase):
         biodata_ids = df["biodata_id"].unique().tolist()
         self.assertGreater(len(biodata_ids), 0)
         ic(biodata_ids)
-        jml_tanggungan_per_pegawai_df = fetch_jml_tanggungan_by_biodata_ids(biodata_ids)
+        jml_tanggungan_per_pegawai_df = fetch_jml_tanggungan(biodata_ids)
         ic(jml_tanggungan_per_pegawai_df.to_dict("records"))
         update_jml_tanggungan_pegawai(jml_tanggungan_per_pegawai_df)
 
