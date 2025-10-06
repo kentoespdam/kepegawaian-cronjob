@@ -2,10 +2,6 @@ services:
   kepegawaian-cronjob:
     build: .
     container_name: kepegawaian-cronjob
-#    user: "1001:1001"  # Force non-root execution
     env_file:
       - .env
     restart: unless-stopped
-#    security_opt:
-#      - no-new-privileges:true
-

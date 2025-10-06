@@ -1,12 +1,7 @@
-FROM ghcr.io/astral-sh/uv:debian-slim AS base
+FROM ghcr.io/astral-sh/uv:debian-slim
 WORKDIR /app
 
-FROM base AS builder
-COPY pyproject.toml .
-COPY uv.lock .
+COPY . .
 RUN uv sync --no-cache --frozen --no-dev
 
-FROM base AS runner
-COPY --from=builder /app /app
-COPY . .
 CMD ["uv", "run", "main.py"]
