@@ -2,3 +2,5 @@ services:
   kepegawaian-cronjob:
     build: .
     container_name: kepegawaian-cronjob
+    env_file:
+      - .env
