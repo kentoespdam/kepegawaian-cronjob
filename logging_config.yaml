@@ -10,19 +10,11 @@ formatters:
     format: '%(asctime)s - %(name)s - %(levelname)-8s - %(message)s'
     datefmt: '%H:%M:%S'
 
+  detailed:
+    format: "%(asctime)s - %(name)s - %(levelname)s - %(filename)s:%(lineno)d - %(funcName)s - %(message)s"
+    datefmt: "%Y-%m-%d %H:%M:%S"
 
 handlers:
-  # File Handler with rotate
-  file:
-    class: logging.handlers.RotatingFileHandler
-    level: INFO
-    formatter: standard
-    filename: logs/cronjob.log
-    maxBytes: 104857600  # 100MB
-    backupCount: 5
-    encoding: utf8
-    mode: a
-
   # Console Handler
   console:
     class: logging.StreamHandler
@@ -30,28 +22,50 @@ handlers:
     formatter: standard
     stream: ext://sys.stdout
 
+  # File Handler with rotate
+  file:
+    class: logging.handlers.RotatingFileHandler
+    level: INFO
+    formatter: standard
+    filename: "logs/cronjob.log"
+    maxBytes: 104857600  # 100MB
+    backupCount: 5
+    encoding: utf8
+    mode: a
+
   # File Handler Error
   error_file:
-    class: logging.handler.RotatingFileHandler
+    class: logging.handlers.RotatingFileHandler
     level: ERROR
-    formatter: standard
-    filename: logs/cronjob-error.log
+    formatter: detailed
+    filename: "logs/cronjob-error.log"
     maxBytes: 10485760 # 10MB
     backupCount: 3
+    encoding: utf8
+    mode: a
+
+  timed_rotating:
+    class: logging.handlers.TimedRotatingFileHandler
+    level: INFO
+    formatter: standard
+    filename: "logs/timed_app.log"
+    when: "midnight"  # atau "D" (daily), "H" (hourly), "W0" (weekly), "M" (monthly)
+    interval: 1
+    backupCount: 30
     encoding: utf8
 
 loggers:
   # Logger for App
   cronjob:
     level: DEBUG
-    handlers: [file, console, error_file]
-    propagate: no
+    handlers: [ file, console, error_file ]
+    propagate: False
 
   # Logger for Scheduler
   schedule:
     level: WARNING
-    handler: [file, console]
+    handler: [ file, console ]
 
 root:
   level: INFO
-  handlers: [file, console, error_file]
+  handlers: [ file, console, error_file ]

@@ -22,7 +22,8 @@ def fetch_tanggungan(pegawai_id: int | None = None):
                            YEAR,
                            pk.tanggal_lahir,
                            CURRENT_DATE
-                   )    AS umur
+                   )    AS umur,
+                   pk.tanggungan
             FROM profil_keluarga pk
                      INNER JOIN pegawai p
                                 ON pk.biodata_id = p.nik
@@ -30,7 +31,7 @@ def fetch_tanggungan(pegawai_id: int | None = None):
                                     AND p.status_kerja IN %s
             WHERE pk.is_deleted = %s
               AND pk.hubungan_keluarga = %s
-              # AND pk.tanggungan = %s
+            AND pk.tanggungan = %s
             """
 
     if pegawai_id is not None:

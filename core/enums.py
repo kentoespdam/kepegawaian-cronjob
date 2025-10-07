@@ -30,14 +30,6 @@ class HubunganKeluarga(Enum):
     SAUDARA = 5
 
 
-class StatusKawin(Enum):
-    BELUM_KAWIN = 0
-    KAWIN = 1
-    JANDA_DUDA = 2
-    MENIKAH_SEKANTOR = 3
-    TIDAK_TAHU = 4
-
-
 class StatusPendidikan(Enum):
     BELUM_SEKOLAH = 0
     SEKOLAH = 1
@@ -49,5 +41,3 @@ class Tunjangan(Enum):
     KINERJA = 1
     BERAS = 2
     AIR = 3
-
-
