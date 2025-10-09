@@ -1,6 +1,7 @@
 import logging.config
 import os
 import time
+from typing import Optional
 
 import pandas as pd
 from dotenv import load_dotenv
@@ -38,7 +39,7 @@ def log_duration(value: str, start_time: float):
     LOGGER.info(f"{value} finish in {time.time() - start_time:.2f}ms")
 
 
-def fetch_data(query: str, params: tuple | None = None) -> pd.DataFrame:
+def fetch_data(query: str, params: Optional[tuple] = None) -> pd.DataFrame:
     with get_connection_pool() as conn:
         with conn.cursor() as cursor:
             cursor.execute(query, params)

@@ -19,7 +19,7 @@ handlers:
   console:
     class: logging.StreamHandler
     level: INFO
-    formatter: standard
+    formatter: detailed
     stream: ext://sys.stdout
 
   # File Handler with rotate

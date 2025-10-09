@@ -1,21 +1,28 @@
+from typing import Optional
+
 import pandas as pd
 
-from core.config import fetch_data, save_update
+from core.config import fetch_data, save_update, LOGGER
 from core.enums import StatusKerja, HubunganKeluarga
 
 
-def fetch_tanggungan(pegawai_id: int | None = None):
-    params = ((StatusKerja.KARYAWAN_AKTIF.value,
-               StatusKerja.DIRUMAHKAN.value,),
-              False,
-              HubunganKeluarga.ANAK.value,
-              True,
-              )
+def fetch_tanggungan(bulan: int, pegawai_id: Optional[int] = None):
+    params = (
+        False,  # pegawai.is_deleted
+        (StatusKerja.KARYAWAN_AKTIF.value, StatusKerja.DIRUMAHKAN.value,),  # pegawai_status_kerja
+        False,  # profil_keluarga.is_deleted
+        HubunganKeluarga.ANAK.value,  # profil_keluarga.hubungan_keluarga
+        True,  # profil_keluarga.tanggungan
+        bulan,  # profil_keluarga.tanggal_lahir (bulan lahir)
+        20,  # profil_keluarga.tanggal_lahir (umur)
+    )
 
     query = """
             SELECT p.id AS pegawai_id,
+                   p.nipam,
                    pk.biodata_id,
                    pk.id,
+                   pk.nama,
                    pk.status_kawin,
                    pk.status_pendidikan,
                    TIMESTAMPDIFF(
@@ -23,15 +30,16 @@ def fetch_tanggungan(pegawai_id: int | None = None):
                            pk.tanggal_lahir,
                            CURRENT_DATE
                    )    AS umur,
-                   pk.tanggungan
+                   pk.tanggungan,
+                   pk.lta_tag
             FROM profil_keluarga pk
-                     INNER JOIN pegawai p
-                                ON pk.biodata_id = p.nik
-                                    AND p.is_deleted = FALSE
-                                    AND p.status_kerja IN %s
+                     INNER JOIN pegawai p ON pk.biodata_id = p.nik AND p.is_deleted = %s AND p.status_kerja IN %s
             WHERE pk.is_deleted = %s
               AND pk.hubungan_keluarga = %s
-            AND pk.tanggungan = %s
+              AND pk.tanggungan = %s
+              AND MONTH(pk.tanggal_lahir) = %s
+              AND TIMESTAMPDIFF(YEAR, pk.tanggal_lahir, CURRENT_DATE) >= %s
+            ORDER BY pk.tanggal_lahir
             """
 
     if pegawai_id is not None:
@@ -40,7 +48,7 @@ def fetch_tanggungan(pegawai_id: int | None = None):
     return fetch_data(query, params)
 
 
-def fetch_jml_tanggungan(biodata_ids: list | None = None):
+def fetch_jml_tanggungan(biodata_ids: Optional[list] = None):
     params = (False, HubunganKeluarga.ANAK.value, True,)
 
     query = """

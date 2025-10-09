@@ -3,10 +3,10 @@ from unittest import TestCase
 import pandas as pd
 from icecream import ic
 
-from core import LOGGER
+from core.config import LOGGER
 from core.cron.cron_tanggungan import CronTanggungan
-from core import StatusKawin, StatusPendidikan
-from core import update_jml_tanggungan_pegawai
+from core.enums import StatusPendidikan
+from core.models.pegawai import update_jml_tanggungan_pegawai
 from core.models.profil_keluarga import fetch_tanggungan, fetch_jml_tanggungan, \
     update_tanggungan_profil_keluarga
 
@@ -23,7 +23,7 @@ class Test(TestCase):
 
     def filter_data(self, df: pd.DataFrame):
         df = df.copy()
-        condition1 = df["status_kawin"].eq(StatusKawin.KAWIN.value)
+        condition1 = df["status_kawin"].eq(1)
         condition2 = df["umur"].ge(26)
         condition3 = df["umur"].gt(21)
         condition4 = df["status_pendidikan"].eq(StatusPendidikan.SELESAI_SEKOLAH.value)
@@ -47,5 +47,5 @@ class Test(TestCase):
 
     def test_class_tanggungan(self):
         cron_tanggungan = CronTanggungan()
-        cron_tanggungan.execute()
+        cron_tanggungan.execute(10)
         self.assertEqual(True, True)
