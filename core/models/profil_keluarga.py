@@ -2,7 +2,7 @@ from typing import Optional
 
 import pandas as pd
 
-from core.config import fetch_data, save_update, LOGGER
+from core.config import fetch_data, save_update
 from core.enums import StatusKerja, HubunganKeluarga
 
 
