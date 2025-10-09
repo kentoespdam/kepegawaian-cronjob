@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 
 from core.config import LOGGER, log_duration
+from core.enums import StatusPendidikan
 from core.helper import cleanup_boolean_dynamic
 from core.models.pegawai import update_jml_tanggungan_pegawai
 from core.models.profil_keluarga import fetch_tanggungan, fetch_jml_tanggungan, update_tanggungan_profil_keluarga
@@ -63,9 +64,10 @@ class CronTanggungan:
     def _apply_business_rules(self) -> 'CronTanggungan':
         if self._df.empty:
             return self
-
-        is_married_or_adult = self._df["status_kawin"] | (self._df["umur"] > 19)
-
+        is_married = self._df["status_kawin"]
+        is_adult = self._df["umur"].gt(19)
+        is_not_selesai_sekolah = self._df["status_pendidikan"].ne(StatusPendidikan.SELESAI_SEKOLAH.value)
+        is_married_or_adult = is_married | (is_adult & is_not_selesai_sekolah)
         self._df = self._df.assign(
             tanggungan=np.where(is_married_or_adult, False, self._df["tanggungan"]),
             lta_tag=np.where(is_married_or_adult, True, self._df["lta_tag"]),
