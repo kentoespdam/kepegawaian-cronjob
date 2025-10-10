@@ -68,14 +68,18 @@ class CronTanggungan:
         is_adult = self._df["umur"].gt(19)
         is_not_selesai_sekolah = self._df["status_pendidikan"].ne(StatusPendidikan.SELESAI_SEKOLAH.value)
         is_married_or_adult = is_married | (is_adult & is_not_selesai_sekolah)
-        self._df["tanggungan"] = np.where(is_married_or_adult, False, self._df["tanggungan"])
+        self._df = self._df.assign(
+            tanggungan=np.where(is_married_or_adult, False, self._df["tanggungan"]),
+            lta_tag=np.where(is_married_or_adult, True, self._df["lta_tag"]),
+        )
+
         return self
 
     def _validate_data(self) -> 'CronTanggungan':
         if self._df.empty:
             return self
 
-        required_cols = ["id", "status_kawin", "umur", "tanggungan"]
+        required_cols = ["id", "status_kawin", "umur", "tanggungan", "lta_tag"]
         missing_cols = [col for col in required_cols if col not in self._df.columns]
 
         if missing_cols:
