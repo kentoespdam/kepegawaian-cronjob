@@ -5,7 +5,7 @@ import pandas as pd
 
 from core.config import LOGGER, log_duration
 from core.enums import StatusPegawai
-from core.helper import cleanup_bool
+from core.helper import cleanup_boolean_dynamic
 from core.models.jenjang_pendidikan import fetch_jenjang_pendidikan
 from core.models.pegawai import fetch_for_statistik
 from core.models.statistik_pegawai import save_statistik_pegawai
@@ -32,7 +32,7 @@ class CronStatistikPegawai:
 
     def _initialize_result_df(self, tahun, bulan):
         df = fetch_jenjang_pendidikan(True)
-        df["is_statistik"] = cleanup_bool(df["is_statistik"])
+        df["is_statistik"] = cleanup_boolean_dynamic(df["is_statistik"])
 
         self.result_df = pd.DataFrame(df[["seq", "pendidikan"]],
                                       columns=["seq", "pendidikan", "tahun", "bulan", "non_golongan", "golongan_a",
