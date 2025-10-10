@@ -30,8 +30,7 @@ def fetch_tanggungan(bulan: int, pegawai_id: Optional[int] = None):
                            pk.tanggal_lahir,
                            CURRENT_DATE
                    )    AS umur,
-                   pk.tanggungan,
-                   pk.lta_tag
+                   pk.tanggungan
             FROM profil_keluarga pk
                      INNER JOIN pegawai p ON pk.biodata_id = p.nik AND p.is_deleted = %s AND p.status_kerja IN %s
             WHERE pk.is_deleted = %s
@@ -69,9 +68,8 @@ def fetch_jml_tanggungan(biodata_ids: Optional[list] = None):
 def update_tanggungan_profil_keluarga(df: pd.DataFrame):
     data = [(
         row.tanggungan,
-        row.lta_tag,
         row.id
     ) for row in df.itertuples()]
 
-    query = "UPDATE profil_keluarga SET tanggungan=%s, lta_tag=%s WHERE id = %s"
+    query = "UPDATE profil_keluarga SET tanggungan=%s WHERE id = %s"
     save_update(query, data)

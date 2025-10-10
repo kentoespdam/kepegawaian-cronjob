@@ -68,10 +68,7 @@ class CronTanggungan:
         is_adult = self._df["umur"].gt(19)
         is_not_selesai_sekolah = self._df["status_pendidikan"].ne(StatusPendidikan.SELESAI_SEKOLAH.value)
         is_married_or_adult = is_married | (is_adult & is_not_selesai_sekolah)
-        self._df = self._df.assign(
-            tanggungan=np.where(is_married_or_adult, False, self._df["tanggungan"]),
-            lta_tag=np.where(is_married_or_adult, True, self._df["lta_tag"]),
-        )
+        self._df["tanggungan"] = np.where(is_married_or_adult, False, self._df["tanggungan"])
 
         return self
 
